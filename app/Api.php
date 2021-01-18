@@ -18,6 +18,9 @@ class Api
         $this->baseUrl = $endpoint;
     }
 
+    /**
+     * Send request to Api
+     */
     public function request(string $method, ?array $parameters = null)
     {
         $url = $this->baseUrl . '?api_key=' . $this->apiKey . '&format=' . $this->format . '&method=' . $method;
@@ -33,6 +36,9 @@ class Api
         return 'Failed request';
     }
 
+    /**
+     * Parse parameters
+     */
     protected function parameters(?array $array): string
     {
         if (!is_array($array)) {

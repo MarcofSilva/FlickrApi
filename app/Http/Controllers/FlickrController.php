@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 
 class FlickrController extends Controller
 {
-    //get from flickr and list multiple photos
+    /**
+     * get from flickr and list multiple photos
+     */
     public function listPhotos(Request $request)
     {
         $flickr = new Flickr();
@@ -28,7 +30,9 @@ class FlickrController extends Controller
         return response()->json($res);
     }
 
-    //get from flickr and list a single random photo
+    /**
+     * Get from flickr and list a single random photo
+     */
     public function randomPhoto()
     {
         $flickr = new Flickr();

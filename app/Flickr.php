@@ -47,7 +47,7 @@ class Flickr
         }
         unset($photo);
 
-        return $res;
+        return $res['photos'];
     }
     
     /**
