@@ -113,8 +113,6 @@ class Flickr
             $width += (int) $size['width'];
             $height += (int) $size['height'];
         }
-        /*$width = $width / count($sizes);
-        $height = $height / count($sizes);*/
         $width = intdiv($width, count($sizes));
         $height = intdiv($height, count($sizes));
 
