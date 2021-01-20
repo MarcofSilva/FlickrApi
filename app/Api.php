@@ -25,6 +25,7 @@ class Api
     {
         $url = $this->baseUrl . '?api_key=' . $this->apiKey . '&format=' . $this->format . '&method=' . $method;
         
+        //TODO guzzle
         $response = file_get_contents($url . $this->parameters($parameters));
 
         $responseObject = unserialize($response);

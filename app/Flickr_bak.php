@@ -4,11 +4,8 @@ namespace App;
 
 use App\Api;
 
-const EXTRA_PARAMETERS = 'owner_name,url_o,description';
-
 class Flickr
 {
-
     public Api $api;
 
     public function __construct()
@@ -29,16 +26,13 @@ class Flickr
         $parameters['per_page'] = $perPage;
         $parameters['page'] = $page;
 
-        if (empty($text)) {
+        if (is_null($text) || strcmp('', trim($text)) === 0) {
             $method = 'flickr.photos.getRecent';
         } else {
             $method = 'flickr.photos.search';
             $parameters['text'] = $text;
         }
-
-        //parameter for requesting extra info
-        $parameters['extras'] = EXTRA_PARAMETERS;
-
+        
         $res = $this->request($method, $parameters);
 
         //cast total number of photos from string to int, for consistency
@@ -49,7 +43,7 @@ class Flickr
         $res['photos'] = array_diff_key($res['photos'], ['perpage' => '']);
 
         foreach ($res['photos']['photo'] as &$photo) {
-            $photo = $this->updatePhotoInfo($photo);
+            $photo = $this->updatePhotoInfo($photo, $photo['id'], $photo['secret']);
         }
         unset($photo);
 
@@ -61,29 +55,23 @@ class Flickr
      */
     public function randomPhoto()
     {
-        $parameters['extras'] = EXTRA_PARAMETERS;
-
-        $flickrResponse = $this->request('flickr.photos.getRecent', $parameters);
+        $flickrResponse = $this->request('flickr.photos.getRecent', null);
         $randomPhoto = array_rand($flickrResponse['photos']['photo'], 1);
         
         $res = $flickrResponse['photos']['photo'][$randomPhoto];
 
-        return $this->updatePhotoInfo($res);
+        return $this->updatePhotoInfo($res, $res['id'], $res['secret']);
     }
 
     /**
      * Update the photos info.
      */
-    protected function updatePhotoInfo($photo)
+    public function updatePhotoInfo($photo, string $photoId, ?string $secretId = null)
     {
         //remove unwanted info
         $resPhoto = array_diff_key($photo, ['owner' => '', 'secret' => '', 'server' => '', 'farm' => '',  'ispublic' => '', 'isfriend' => '', 'isfamily' => '']);
 
-        //correctly position description
-        $resPhoto['description'] = $resPhoto['description']['_content'];
 
-
-        /*TODO DELETE
         $info = $this->photoInfo($photoId, $secretId);
         $resPhoto['ownername'] = $info['photo']['owner']['realname'];
         $resPhoto['description'] = $info['photo']['description']['_content'];
@@ -91,7 +79,7 @@ class Flickr
 
         $size = $this->getPhotoSize($photoId);
         $resPhoto['height'] = $size['height'];
-        $resPhoto['width'] = $size['width'];*/
+        $resPhoto['width'] = $size['width'];
 
         return $resPhoto;
     }
@@ -103,10 +91,34 @@ class Flickr
     {
         $parameters['photo_id'] = $photoId;
 
-        if (!empty($secretId)) {
+        if (!is_null($secretId)) {
             $parameters['secret'] = $secretId;
         }
 
         return $this->request('flickr.photos.getInfo', $parameters);
+    }
+
+    /**
+     * Get Average Height and Width of a photo
+     */
+    protected function getPhotoSize(string $photoId)
+    {
+        $parameters['photo_id'] = $photoId;
+        $sizesResponse = $this->request('flickr.photos.getSizes', $parameters);
+        
+        $width = 0;
+        $height = 0;
+        $sizes = $sizesResponse['sizes']['size'];
+        foreach ($sizes as $size) {
+            $width += (int) $size['width'];
+            $height += (int) $size['height'];
+        }
+        $width = intdiv($width, count($sizes));
+        $height = intdiv($height, count($sizes));
+
+        $size['height'] = $height;
+        $size['width'] = $width;
+
+        return $size;
     }
 }
